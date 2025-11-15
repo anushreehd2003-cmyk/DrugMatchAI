@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DrugMatch AI - Your Digital Medication Safety Guard</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Lucide Icons for simplicity -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom styles for aesthetic enhancements */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light background for the overall app */
+        }
+        .card-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .upload-card-dashed {
+            border: 2px dashed #a0aec0;
+            transition: all 0.3s ease;
+        }
+        .upload-card-dashed:hover {
+            border-color: #4299e1;
+            cursor: pointer;
+            background-color: #f7fafc;
+        }
+        .action-button {
+            transition: transform 0.1s ease-in-out;
+        }
+        .action-button:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body class="min-h-screen pt-10 pb-20">
+
+    <!-- How It Works Modal -->
+    <div id="how-it-works-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-gray-900 bg-opacity-75 transition-opacity" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl overflow-hidden shadow-2xl transform transition-all max-w-lg w-full">
+                <div class="p-6">
+                    <div class="flex justify-between items-start">
+                        <h3 class="text-2xl font-bold text-blue-800" id="modal-title">How DrugMatch AI Works</h3>
+                        <button onclick="closeHowItWorksModal()" class="text-gray-400 hover:text-gray-600">
+                            <i data-lucide="x" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                    <div class="mt-4 text-left">
+                        <ol class="space-y-4 text-gray-600 list-decimal pl-5">
+                            <li class="pl-2">
+                                <span class="font-semibold text-gray-800">Upload Prescriptions:</span> Click on an upload card to add photos or PDF files from different doctors.
+                            </li>
+                            <li class="pl-2">
+                                <span class="font-semibold text-gray-800">AI Extraction:</span> Our system uses advanced AI to securely extract all medication names, dosages, and instructions.
+                            </li>
+                            <li class="pl-2">
+                                <span class="font-semibold text-gray-800">Compare Medications:</span> Once at least two prescriptions are added, click the **"Compare Prescriptions"** button.
+                            </li>
+                            <li class="pl-2">
+                                <span class="font-semibold text-gray-800">Interaction Analysis:</span> The AI cross-references all medications to identify dangerous drug-drug interactions.
+                            </li>
+                            <li class="pl-2">
+                                <span class="font-semibold text-gray-800">Receive Alerts:</span> View instant, color-coded alerts and safety recommendations right on the results screen.
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 text-right">
+                    <button onclick="closeHowItWorksModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg action-button">
+                        Got it!
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End How It Works Modal -->
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Header/Hero Section -->
+        <header class="text-center mb-16 p-8 bg-white rounded-2xl card-shadow">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-blue-800 mb-4">
+                Your Digital Medication Safety Guard
+            </h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
+                Compare multiple prescriptions from different doctors and detect dangerous drug interactions before they happen.
+            </p>
+            <!-- Updated button to show the modal -->
+            <button onclick="showHowItWorksModal()" class="flex items-center justify-center mx-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-full action-button">
+                <i data-lucide="play-circle" class="w-5 h-5 mr-2"></i>
+                How It Works
+            </button>
+        </header>
+
+        <!-- Prescription Upload Section -->
+        <section class="bg-white p-6 sm:p-8 rounded-2xl card-shadow mb-12">
+            <h2 class="text-2xl font-semibold text-blue-700 mb-4 flex items-center">
+                <i data-lucide="file-text" class="w-6 h-6 mr-2 text-blue-500"></i>
+                Compare Prescriptions
+            </h2>
+            <p class="text-gray-500 mb-8">
+                Add prescriptions from different doctors to check for cross-medication interactions.
+            </p>
+
+            <div id="prescription-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Prescription Cards will be injected here by JavaScript -->
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-8 flex justify-center space-x-4">
+                <button id="compare-btn" onclick="comparePrescriptions()" class="bg-gray-700 hover:bg-gray-800 text-white font-semibold py-2.5 px-6 rounded-xl flex items-center action-button disabled:opacity-50" disabled>
+                    <i data-lucide="search" class="w-5 h-5 mr-2"></i>
+                    Compare Prescriptions
+                </button>
+                <button id="clear-btn" onclick="clearAll()" class="bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2.5 px-6 rounded-xl flex items-center action-button disabled:opacity-50" disabled>
+                    <i data-lucide="rotate-ccw" class="w-5 h-5 mr-2"></i>
+                    Clear All
+                </button>
+            </div>
+        </section>
+
+        <!-- Comparison Results Section -->
+        <section class="bg-white p-6 sm:p-8 rounded-2xl card-shadow mb-12">
+            <h2 class="text-2xl font-semibold text-blue-700 mb-6 border-b pb-3 flex items-center">
+                <i data-lucide="bar-chart-3" class="w-6 h-6 mr-2 text-blue-500"></i>
+                Comparison Results
+            </h2>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="hidden text-center py-20">
+                <div class="animate-spin inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mb-4"></div>
+                <p class="text-lg font-medium text-gray-600">Analyzing prescriptions for interactions...</p>
+                <p class="text-sm text-gray-400">This may take a few moments as AI processes the documents.</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="text-center py-20">
+                <div class="flex justify-center mb-4">
+                    <i data-lucide="package-x" class="w-16 h-16 text-gray-300"></i>
+                </div>
+                <p class="text-xl font-medium text-gray-500 mb-2">No Prescriptions to Compare</p>
+                <p class="text-gray-400">Add at least 2 prescriptions and click "Compare Prescriptions" to see interaction analysis.</p>
+            </div>
+
+            <!-- Results Content (Example) -->
+            <div id="results-content" class="hidden">
+                <div class="bg-red-50 p-4 border border-red-300 rounded-xl mb-6">
+                    <div class="flex items-center mb-2">
+                        <i data-lucide="alert-triangle" class="w-6 h-6 text-red-600 mr-3"></i>
+                        <h3 class="text-lg font-semibold text-red-600">CRITICAL INTERACTION DETECTED</h3>
+                    </div>
+                    <p class="text-red-700">**Prescription 1 (Drug A) and Prescription 2 (Drug B)** may cause a severe risk of serotonin syndrome. Immediate consultation with a healthcare provider is required.</p>
+                </div>
+
+                <!-- Updated interaction alert to remove reference to Prescription 3 -->
+                <div class="bg-yellow-50 p-4 border border-yellow-300 rounded-xl mb-6">
+                    <div class="flex items-center mb-2">
+                        <i data-lucide="shield-alert" class="w-6 h-6 text-yellow-600 mr-3"></i>
+                        <h3 class="text-lg font-semibold text-yellow-600">MODERATE INTERACTION</h3>
+                    </div>
+                    <p class="text-yellow-700">A non-prescription supplement from **Prescription 1** may reduce the efficacy of a drug in **Prescription 2**. Monitor side effects and consult your doctor for potential dosage adjustment.</p>
+                </div>
+
+                <div class="text-center mt-8">
+                    <button class="bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold py-2 px-5 rounded-full text-sm">
+                        View Full Detailed Report
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Feature Cards Grid (Bottom Section) -->
+        <section>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                <!-- Card 1: Multi-Prescription Analysis -->
+                <div class="bg-white p-6 rounded-2xl card-shadow text-center">
+                    <div class="inline-flex justify-center items-center p-3 rounded-full bg-blue-100 text-blue-600 mb-4">
+                        <!-- Brain Icon -->
+                        <i data-lucide="brain" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Multi-Prescription Analysis</h3>
+                    <p class="text-gray-500">Compare medications from different doctors and detect cross-prescription interactions.</p>
+                </div>
+
+                <!-- Card 2: Instant Alerts -->
+                <div class="bg-white p-6 rounded-2xl card-shadow text-center">
+                    <div class="inline-flex justify-center items-center p-3 rounded-full bg-yellow-100 text-yellow-600 mb-4">
+                        <!-- Bolt/Flash Icon -->
+                        <i data-lucide="zap" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Instant Alerts</h3>
+                    <p class="text-gray-500">Get immediate notifications about dangerous drug interactions with risk levels.</p>
+                </div>
+
+                <!-- Card 3: Safety Recommendations -->
+                <div class="bg-white p-6 rounded-2xl card-shadow text-center">
+                    <div class="inline-flex justify-center items-center p-3 rounded-full bg-indigo-100 text-indigo-600 mb-4">
+                        <!-- Shield Icon -->
+                        <i data-lucide="shield-check" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Safety Recommendations</h3>
+                    <p class="text-gray-500">Receive alternative medication suggestions to avoid harmful interactions.</p>
+                </div>
+
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // --- State Management ---
+        const MAX_PRESCRIPTIONS = 5;
+        let prescriptions = []; // Array of { index: number, isAdded: boolean, fileName: string | null }
+
+        // --- DOM References ---
+        const cardsContainer = document.getElementById('prescription-cards-container');
+        const compareBtn = document.getElementById('compare-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const emptyState = document.getElementById('empty-state');
+        const loadingState = document.getElementById('loading-state');
+        const resultsContent = document.getElementById('results-content');
+        const modal = document.getElementById('how-it-works-modal');
+
+
+        // --- Helper Function to Render Lucide Icons ---
+        function renderIcons() {
+            lucide.createIcons();
+        }
+
+        // --- HTML Templates ---
+        function createPrescriptionCard(index, isAdded, fileName) {
+            const cardId = `card-${index}`;
+            const fileInputId = `file-input-${index}`;
+            
+            const cardClass = isAdded
+                ? 'bg-green-50 border-2 border-green-500 text-center p-6 rounded-xl flex flex-col justify-between h-full'
+                : 'bg-white upload-card-dashed text-center p-6 rounded-xl hover:bg-gray-50 flex flex-col justify-between h-full';
+
+            const statusText = isAdded
+                ? `<span class="text-green-600 font-semibold flex items-center"><i data-lucide="check-circle" class="w-4 h-4 mr-1"></i> Added</span>`
+                : `<span class="text-gray-400">Not Added</span>`;
+
+            const cardContent = isAdded
+                ? `
+                    <div class="flex flex-col items-center justify-center pt-4">
+                        <i data-lucide="file-check" class="w-12 h-12 text-green-500 mb-3"></i>
+                        <p class="text-base font-medium text-gray-700 truncate w-full px-2">${fileName}</p>
+                        <button onclick="removePrescription(${index})" class="mt-2 text-sm text-red-500 hover:text-red-700 font-medium">Remove</button>
+                    </div>
+                  `
+                : `
+                    <div class="flex flex-col items-center justify-center pt-4">
+                        <i data-lucide="camera" class="w-12 h-12 text-blue-500 mb-2"></i>
+                        <p class="text-sm font-medium text-blue-700">Click to add Prescription ${index}</p>
+                        <p class="text-xs text-gray-400 mt-1">Take photo or upload file</p>
+                    </div>
+                  `;
+
+            return `
+                <div id="${cardId}" class="${cardClass}" onclick="document.getElementById('${fileInputId}').click()">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-lg font-bold text-gray-700">Prescription ${index}</h3>
+                        ${statusText}
+                    </div>
+                    ${cardContent}
+                    <input type="file" id="${fileInputId}" accept="image/*,.pdf" class="hidden" onchange="handleFileUpload(event, ${index})">
+                </div>
+            `;
+        }
+
+        function createAddCard() {
+            if (prescriptions.length >= MAX_PRESCRIPTIONS) {
+                return ''; // Don't show if max reached
+            }
+
+            return `
+                <div id="add-card" onclick="addPrescriptionCard()" class="bg-white upload-card-dashed text-center p-6 rounded-xl hover:bg-gray-50 flex flex-col items-center justify-center h-full min-h-[200px] cursor-pointer">
+                    <i data-lucide="plus" class="w-12 h-12 text-blue-500 mb-2"></i>
+                    <p class="text-lg font-medium text-blue-700">Add Another Prescription</p>
+                    <p class="text-xs text-gray-400 mt-1">Maximum ${MAX_PRESCRIPTIONS} prescriptions</p>
+                </div>
+            `;
+        }
+
+
+        // --- Main UI Renderer ---
+        function updateUI() {
+            cardsContainer.innerHTML = '';
+            let addedCount = 0;
+            let currentMaxIndex = 0;
+
+            // 1. Render existing cards
+            prescriptions.forEach(p => {
+                cardsContainer.innerHTML += createPrescriptionCard(p.index, p.isAdded, p.fileName);
+                if (p.isAdded) addedCount++;
+                currentMaxIndex = Math.max(currentMaxIndex, p.index);
+            });
+
+            // 2. Render the 'Add Another' card if limit not reached
+            if (prescriptions.length < MAX_PRESCRIPTIONS) {
+                cardsContainer.innerHTML += createAddCard();
+            }
+
+            // 3. Update Button State
+            compareBtn.disabled = addedCount < 2;
+            clearBtn.disabled = addedCount === 0;
+
+            // 4. Update Results Display State
+            if (addedCount === 0) {
+                emptyState.classList.remove('hidden');
+                resultsContent.classList.add('hidden');
+            } else if (addedCount >= 2 && resultsContent.dataset.show === 'true') {
+                 // Results are visible if compare was successful
+            } else {
+                emptyState.classList.remove('hidden');
+                resultsContent.classList.add('hidden');
+            }
+
+            // 5. Re-render icons after DOM updates
+            renderIcons();
+        }
+
+        // --- Interaction Handlers ---
+
+        function initApp() {
+            // Start with Prescription 1 and 2
+            prescriptions.push({ index: 1, isAdded: false, fileName: null });
+            prescriptions.push({ index: 2, isAdded: false, fileName: null });
+            updateUI();
+        }
+
+        function addPrescriptionCard() {
+            if (prescriptions.length >= MAX_PRESCRIPTIONS) return;
+            
+            // Find the next available index number (1, 2, 3...)
+            const nextIndex = (prescriptions.length > 0) 
+                ? Math.max(...prescriptions.map(p => p.index)) + 1 
+                : 1;
+
+            prescriptions.push({ index: nextIndex, isAdded: false, fileName: null });
+            updateUI();
+        }
+
+        function handleFileUpload(event, index) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const cardIndex = prescriptions.findIndex(p => p.index === index);
+            if (cardIndex !== -1) {
+                prescriptions[cardIndex].isAdded = true;
+                prescriptions[cardIndex].fileName = file.name;
+                
+                // If it's the 'Add Another' card placeholder, add a new empty card
+                if (prescriptions.length < MAX_PRESCRIPTIONS && prescriptions.every(p => p.isAdded)) {
+                     // Only add a new slot if the current max card was just filled
+                    addPrescriptionCard();
+                }
+
+                resultsContent.dataset.show = 'false'; // Hide old results on new upload
+                updateUI();
+            }
+        }
+
+        function removePrescription(index) {
+            const cardIndex = prescriptions.findIndex(p => p.index === index);
+            if (cardIndex !== -1) {
+                prescriptions.splice(cardIndex, 1);
+                
+                // Ensure an empty slot is always available if below max and all are filled
+                if (prescriptions.length < MAX_PRESCRIPTIONS && prescriptions.every(p => p.isAdded)) {
+                    addPrescriptionCard();
+                }
+
+                resultsContent.dataset.show = 'false'; // Hide old results
+                updateUI();
+            }
+        }
+
+        function clearAll() {
+            prescriptions = [
+                { index: 1, isAdded: false, fileName: null },
+                { index: 2, isAdded: false, fileName: null }
+            ];
+            resultsContent.dataset.show = 'false';
+            updateUI();
+        }
+
+    //     function comparePrescriptions() {
+    //         const addedCount = prescriptions.filter(p => p.isAdded).length;
+
+    //         if (addedCount < 2) {
+    //             console.error("Need at least 2 prescriptions to compare.");
+    //             return;
+    //         }
+
+    //         // 1. Show Loading State and hide others
+    //         emptyState.classList.add('hidden');
+    //         resultsContent.classList.add('hidden');
+    //         loadingState.classList.remove('hidden');
+    //         compareBtn.disabled = true; // Disable button during processing
+
+    //         // 2. Simulate API Call (e.g., to the Gemini API with search grounding)
+            
+    //         console.log(`Simulating AI analysis for ${addedCount} prescriptions...`);
+
+    //         setTimeout(() => {
+    //             // 3. Hide Loading State
+    //             loadingState.classList.add('hidden');
+
+    //             // 4. Show Results
+    //             resultsContent.classList.remove('hidden');
+    //             resultsContent.dataset.show = 'true';
+    //             compareBtn.disabled = false;
+                
+    //         }, 3000); // 3 second delay to simulate processing time
+    //    }
+
+
+
+// Function to determine which results to show
+function generateSimulatedResults(count) {
+    if (count < 2) {
+        return '';
+    }
+    
+    // Example logic: Change the output based on the number of uploaded files
+    if (count === 2) {
+        // Safe Result for 2 files
+        return `
+            <div class="bg-green-50 p-4 border border-green-300 rounded-xl mb-6">
+                <div class="flex items-center mb-2">
+                    <i data-lucide="check-circle" class="w-6 h-6 text-green-600 mr-3"></i>
+                    <h3 class="text-lg font-semibold text-green-600">NO MAJOR INTERACTIONS DETECTED</h3>
+                </div>
+                <p class="text-green-700">The medications in **Prescription 1** and **Prescription 2** appear compatible. Always consult your pharmacist for final verification.</p>
+            </div>
+        `;
+    } else if (count === 3) {
+        // Critical Result for 3 files
+        return `
+            <div class="bg-red-50 p-4 border border-red-300 rounded-xl mb-6">
+                <div class="flex items-center mb-2">
+                    <i data-lucide="alert-triangle" class="w-6 h-6 text-red-600 mr-3"></i>
+                    <h3 class="text-lg font-semibold text-red-600">CRITICAL INTERACTION DETECTED</h3>
+                </div>
+                <p class="text-red-700">***Prescription 2 (Drug B) and Prescription 3 (Drug C)*** may cause a severe risk of Serotonin Syndrome. Immediate consultation with a healthcare provider is required.</p>
+            </div>
+            <div class="bg-yellow-50 p-4 border border-yellow-300 rounded-xl mb-6">
+                <div class="flex items-center mb-2">
+                    <i data-lucide="shield-alert" class="w-6 h-6 text-yellow-600 mr-3"></i>
+                    <h3 class="text-lg font-semibold text-yellow-600">MODERATE INTERACTION</h3>
+                </div>
+                <p class="text-yellow-700">A non-prescription supplement from ***Prescription 1*** may reduce the efficacy of a drug in ***Prescription 2***. Monitor side effects and consult your doctor.</p>
+            </div>
+        `;
+    } else {
+        // General warning for 4 or 5 files (more complexity = higher risk)
+        return `
+            <div class="bg-red-50 p-4 border border-red-300 rounded-xl mb-6">
+                <div class="flex items-center mb-2">
+                    <i data-lucide="alert-triangle" class="w-6 h-6 text-red-600 mr-3"></i>
+                    <h3 class="text-lg font-semibold text-red-600">CRITICAL INTERACTION DETECTED</h3>
+                </div>
+                <p class="text-red-700">With ${count} prescriptions, the risk of serious cumulative side effects is **HIGH**. Consultation with a pharmacist or doctor is essential to review the entire drug regimen.</p>
+            </div>
+        `;
+    }
+}
+
+// Update the main comparison function
+function comparePrescriptions() {
+    const addedPrescriptions = prescriptions.filter(p => p.isAdded);
+    const addedCount = addedPrescriptions.length;
+
+    if (addedCount < 2) {
+        console.error("Need at least 2 prescriptions to compare.");
+        return;
+    }
+
+    // 1. Show Loading State and hide others
+    emptyState.classList.add('hidden');
+    resultsContent.classList.add('hidden');
+    loadingState.classList.remove('hidden');
+    compareBtn.disabled = true;
+
+    console.log(`Simulating AI analysis for ${addedCount} prescriptions...`);
+
+    setTimeout(() => {
+        // 2. Hide Loading State
+        loadingState.classList.add('hidden');
+
+        // 3. GENERATE AND INJECT NEW DYNAMIC RESULTS
+        const resultsHTML = generateSimulatedResults(addedCount);
+        resultsContent.innerHTML = resultsHTML + `
+            <div class="text-center mt-8">
+                <button class="bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold py-2 px-5 rounded-full text-sm">
+                    View Full Detailed Report
+                </button>
+            </div>
+        `;
+        
+        // 4. Show Results and re-render icons
+        resultsContent.classList.remove('hidden');
+        resultsContent.dataset.show = 'true';
+        compareBtn.disabled = false;
+        renderIcons(); // IMPORTANT: Need to re-render icons after changing innerHTML
+
+    }, 3000); // 3 second delay to simulate processing time
+}
+
+
+       
+
+        // --- Modal Handlers ---
+
+        function showHowItWorksModal() {
+            modal.classList.remove('hidden');
+            // Prevent body scrolling when modal is open
+            document.body.style.overflow = 'hidden'; 
+            renderIcons(); // Ensure icons within the modal are rendered
+        }
+
+        function closeHowItWorksModal() {
+            modal.classList.add('hidden');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+
+        // --- Initialization ---
+        window.onload = function() {
+            initApp();
+        };
+
+    </script>
+</body>
+</html>
